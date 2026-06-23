@@ -17,7 +17,8 @@ import {
   Calendar,
   Eye,
   Store,
-  FileText
+  FileText,
+  Globe
 } from 'lucide-react';
 import { Offer } from '../types';
 import { getSafeLocationOrigin } from '../utils/safeLocation';
@@ -106,6 +107,23 @@ export default function OfferCreator({ onOfferCreated }: OfferCreatorProps) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [isCopied, setIsCopied] = useState(false);
   const [publicBaseUrl, setPublicBaseUrl] = useState('');
+  const [customHostUrl, setCustomHostUrl] = useState(() => {
+    try {
+      return localStorage.getItem('custom_host_url') || '';
+    } catch (e) {
+      console.warn("Storage access is restricted/sandboxed:", e);
+      return '';
+    }
+  });
+
+  const handleCustomHostChange = (val: string) => {
+    setCustomHostUrl(val);
+    try {
+      localStorage.setItem('custom_host_url', val);
+    } catch (e) {
+      console.warn("Storage write is restricted/sandboxed:", e);
+    }
+  };
 
   // Fetch the dynamic public URL configuration on mount
   useEffect(() => {
@@ -282,7 +300,9 @@ export default function OfferCreator({ onOfferCreated }: OfferCreatorProps) {
     setTextColor('#f8fafc');
   };
 
-  const baseLink = isValidPublicUrl(publicBaseUrl) ? publicBaseUrl : getSafeFallbackOrigin();
+  const baseLink = customHostUrl.trim() 
+    ? (customHostUrl.trim().endsWith('/') ? customHostUrl.trim().slice(0, -1) : customHostUrl.trim())
+    : (isValidPublicUrl(publicBaseUrl) ? publicBaseUrl : getSafeFallbackOrigin());
   const offerLink = createdOffer ? `${baseLink}/?offerId=${createdOffer.id}` : '';
 
   return (
@@ -434,6 +454,29 @@ export default function OfferCreator({ onOfferCreated }: OfferCreatorProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Custom Host/GitHub URL Config */}
+              <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+                <div className="flex items-center gap-2 justify-end">
+                  <span className="text-xs font-bold text-slate-800">رابط الهوست ونطاق النشر (GitHub Pages)</span>
+                  <Globe className="w-4 h-4 text-indigo-600" />
+                </div>
+                <p className="text-[10px] text-slate-500 text-right leading-relaxed">
+                  إذا كنت تقوم برفع واستضافة تطبيقك على صفحات جيت هب (GitHub Pages) أو نطاق مخصص، أدخل الرابط أدناه (مثل <code>https://username.github.io/repo</code>) ليتم توليد الـ QR وكود المسح بالإشارة إليه مباشرة.
+                </p>
+                <input
+                  type="url"
+                  value={customHostUrl}
+                  onChange={(e) => handleCustomHostChange(e.target.value)}
+                  placeholder="https://yourusername.github.io/your-repository"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-400 transition-all text-left font-mono"
+                />
+                {customHostUrl && (
+                  <div className="text-[9.5px] text-indigo-700 text-right font-medium bg-indigo-100/40 p-2 rounded-lg">
+                    ✓ سيتم توليد جميع روابط QR وأكواد المسح للإشارة إلى هذا النطاق المخصص.
+                  </div>
+                )}
               </div>
 
               {error && (
