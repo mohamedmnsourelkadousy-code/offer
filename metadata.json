@@ -1,0 +1,6 @@
+{
+  "name": "QR & Mobile Wallet Pass Generator",
+  "description": "تطبيق متكامل لإنشاء رموز QR للعروض المجانية وحفظ بطاقات العروض تفاعلياً في محفظة آبل وجوجل للهواتف الذكية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
